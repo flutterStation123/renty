@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "564009530216",
+    "project_id": "rentyapp-a235a",
+    "storage_bucket": "rentyapp-a235a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564009530216:android:59ea761e4570e36daa5cdd",
+        "android_client_info": {
+          "package_name": "com.example.renty_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBL-XbnVOTjK5MpbUlR8IdK6dY4UeaVzmg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
