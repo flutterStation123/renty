@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:renty_app/Dashboardpage/carManagement/ShowcarInfopage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-Color getTextColor(String text) {
-  if (text == 'Rented') {
+Color getTextColor(String status) {
+  if (status == 'rented') {
     return const Color.fromARGB(255, 243, 33, 33);
-  } else if (text == 'Available') {
+  } else if (status == 'available') {
     return Colors.green;
   } else {
-    return Colors.black; // Default color if text doesn't match any condition
+    return Colors.black;
   }
 }
 
@@ -14,14 +17,21 @@ class Car {
   final String model;
   final String licensePlate;
   final String status;
+  final String price;
 
-  Car({required this.model, required this.licensePlate, required this.status});
+  Car({
+    required this.model,
+    required this.licensePlate,
+    required this.status,
+    required this.price,
+  });
 }
 
 class CarDataSource extends DataTableSource {
   final List<Car> cars;
+  final Function(Car car) onRowTap;
 
-  CarDataSource(this.cars);
+  CarDataSource(this.cars, this.onRowTap);
 
   @override
   DataRow getRow(int index) {
@@ -30,6 +40,11 @@ class CarDataSource extends DataTableSource {
     final Car car = cars[index];
     return DataRow.byIndex(
       index: index,
+      onSelectChanged: (bool? selected) {
+        if (selected != null && selected) {
+          onRowTap(car);
+        }
+      },
       cells: [
         DataCell(Text(car.model)),
         DataCell(Text(car.licensePlate)),
@@ -42,13 +57,7 @@ class CarDataSource extends DataTableSource {
             ),
           ),
         ),
-        DataCell(Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
-            IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
-          ],
-        )),
+        DataCell(Text(car.price)),
       ],
     );
   }
@@ -68,37 +77,91 @@ class CarInventoryTable extends StatefulWidget {
 
 class _CarInventoryTableState extends State<CarInventoryTable> {
   final int _rowsPerPage = 5;
-  final List<Car> _cars = List.generate(
-    20,
-    (index) => Car(
-      model: 'Car Model ${index + 1}',
-      licensePlate: 'Plate${1000 + index}',
-      status: index % 2 == 0 ? 'Available' : 'Rented',
-    ),
-  );
-
   late CarDataSource _carDataSource;
+  List<Car> _cars = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _carDataSource = CarDataSource(_cars);
+    _loadUserCars();
+  }
+
+  Future<void> _loadUserCars() async {
+    List<Car> cars = await getCarsByUser();
+    setState(() {
+      _cars = cars;
+      _carDataSource = CarDataSource(_cars, _navigateToCarDetails); 
+      _isLoading = false;
+    });
+  }
+
+  Future<List<Car>> getCarsByUser() async {
+    List<Car> carList = [];
+    try {
+      String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+      if (userId.isEmpty) {
+        print("No user is logged in.");
+        return carList;
+      }
+
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('cars')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        carList.add(Car(
+          model: doc['Model'],
+          licensePlate: doc['Plate'],
+          price: doc['Price'],
+          status: doc['Status'],
+        ));
+      }
+    } catch (error) {
+      print("Failed to retrieve cars: $error");
+    }
+
+    return carList;
+  }
+
+  void _navigateToCarDetails(Car car) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CarDetailsPage(
+          car: car,
+          onSave: (updatedCar) {
+            setState(() {
+              final index = _cars.indexWhere((c) => c.licensePlate == car.licensePlate);
+              if (index != -1) {
+                _cars[index] = updatedCar; 
+              }
+            });
+          },
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: PaginatedDataTable(
-        header: Text("Cars Owned"),
-        columns: [
-          DataColumn(label: Text('Car Model')),
-          DataColumn(label: Text('License Plate')),
-          DataColumn(label: Text('Status')),
-          DataColumn(label: Text('Actions')),
-        ],
-        source: _carDataSource,
-        rowsPerPage: _rowsPerPage,
-      ),
+      child: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : PaginatedDataTable(
+              header: Text("Cars Owned"),
+              columns: [
+                DataColumn(label: Text('Car Model')),
+                DataColumn(label: Text('License Plate')),
+                DataColumn(label: Text('Status')),
+                DataColumn(label: Text('Price')),
+              ],
+              source: _carDataSource,
+              rowsPerPage: _rowsPerPage,
+              showCheckboxColumn: false,
+            ),
     );
   }
 }

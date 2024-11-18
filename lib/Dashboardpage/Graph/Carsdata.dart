@@ -18,15 +18,13 @@ SideTitles CarDara() {
     getTitlesWidget: (double value, TitleMeta meta) {
       int index = value.toInt();
 
-      // Only show titles for the first 7 spots (one for each day of the week)
       if (index < daysOfWeek.length) {
         return Text(
-          daysOfWeek[index], // Directly map to day of the week
+          daysOfWeek[index], 
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         );
       }
 
-      // Return an empty container for positions that should not show titles
       return Container();
     },
   );

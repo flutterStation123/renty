@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:renty_app/Dashboardpage/Graph/Chart.dart';
-import 'package:renty_app/Styles/History.dart';
+import 'package:renty_app/Dashboardpage/Styles/History.dart';
 import 'package:renty_app/Dashboardpage/Analytics/MetricCard.dart';
 import 'package:renty_app/Dashboardpage/Tables/Table.dart';
+import 'package:renty_app/Dashboardpage/carManagement/newCar.dart';
+import 'package:renty_app/Dashboardpage/rentRequets/requestedRent.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -10,10 +12,64 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  int pendingRequests =
+      5; 
+
+  void navigateToRequestsPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RentRequestsPage(),
+      ),
+    );
+  }
+
+  void navigateToNewCarPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => newCar(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Dashboard")),
+      appBar: AppBar(
+        title: Text("Dashboard"),
+        actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: Icon(Icons.notifications, size: 30),
+                onPressed: navigateToRequestsPage,
+              ),
+              if (pendingRequests > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '$pendingRequests',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,13 +97,12 @@ class _DashboardPageState extends State<DashboardPage> {
                           "title": "Total Cars",
                           "value": "20",
                           "icon": Icons.directions_car_filled_outlined,
-                          "Status": "Rented" 
+                          "Status": "Rented"
                         },
                         {
                           "title": "Available Cars",
                           "value": "15",
-                          "icon": Icons
-                              .check_circle_outline, 
+                          "icon": Icons.check_circle_outline,
                         },
                         {
                           "title": "Active Rentals",
@@ -104,9 +159,9 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: navigateToNewCarPage,
         backgroundColor: Colors.blue,
-        child: const Icon(Icons.car_rental_rounded),
+        child: const Icon(Icons.add_circle),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
       ),

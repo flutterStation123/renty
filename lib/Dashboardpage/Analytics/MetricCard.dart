@@ -17,14 +17,13 @@ class MetricCard extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start, // Align content to the left
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
               icon,
               color: Colors.black,
               size: iconSize,
-            ), // Optional: add color to the icon
+            ),
             SizedBox(height: 4),
             Text(value,
                 style: TextStyle(fontSize: textSize, color: Colors.black)),
